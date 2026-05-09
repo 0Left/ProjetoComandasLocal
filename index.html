@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Comandas — rascunho local</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Comandas</h1>
+      <p class="subtitle">Rascunho local · dados salvos no navegador</p>
+    </header>
+
+    <main class="layout">
+      <section class="panel" aria-labelledby="open-heading">
+        <div class="panel-head">
+          <h2 id="open-heading">Abertas</h2>
+          <button type="button" class="btn primary" id="btn-new">Nova comanda</button>
+        </div>
+        <ul class="comanda-list" id="list-open"></ul>
+        <p class="empty-hint" id="empty-open" hidden>Nenhuma comanda aberta. Use “Nova comanda”.</p>
+      </section>
+
+      <section class="panel panel-detail" aria-labelledby="detail-heading">
+        <div class="panel-head">
+          <h2 id="detail-heading">Detalhe</h2>
+        </div>
+        <div id="detail-placeholder" class="placeholder">
+          Selecione uma comanda aberta para anotar itens ou fechar.
+        </div>
+        <div id="detail-content" hidden>
+          <div class="detail-title-row">
+            <h3 id="detail-name"></h3>
+            <button type="button" class="btn danger" id="btn-close">Fechar comanda</button>
+          </div>
+          <form class="add-row" id="form-add-item">
+            <label class="sr-only" for="item-name">Item</label>
+            <input
+              type="text"
+              id="item-name"
+              name="item-name"
+              placeholder="Nome do item"
+              autocomplete="off"
+              required
+            />
+            <label class="sr-only" for="item-valor">Valor unitário (R$)</label>
+            <input
+              type="number"
+              id="item-valor"
+              name="item-valor"
+              min="0"
+              step="0.01"
+              placeholder="Valor"
+              class="valor-input"
+              required
+            />
+            <label class="sr-only" for="item-qty">Quantidade</label>
+            <input
+              type="number"
+              id="item-qty"
+              name="item-qty"
+              min="1"
+              value="1"
+              class="qty-input"
+            />
+            <button type="submit" class="btn primary">Incluir</button>
+          </form>
+          <ul class="items-list" id="items-list"></ul>
+          <p class="comanda-total" id="detail-total" hidden>
+            <span>Total da comanda:</span> <strong id="detail-total-value"></strong>
+          </p>
+          <p class="empty-hint" id="empty-items" hidden>Nenhum item ainda. Inclua acima.</p>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="history-heading">
+        <div class="panel-head">
+          <h2 id="history-heading">Histórico</h2>
+        </div>
+        <ul class="comanda-list history" id="list-history"></ul>
+        <p class="empty-hint" id="empty-history" hidden>Nenhuma comanda fechada ainda.</p>
+      </section>
+    </main>
+
+    <dialog class="modal" id="modal-new">
+      <form method="dialog" id="form-new">
+        <h3>Nova comanda</h3>
+        <label for="new-name">Nome ou identificação</label>
+        <input type="text" id="new-name" required autocomplete="off" />
+        <div class="modal-actions">
+          <button type="button" class="btn" id="modal-cancel" value="cancel">Cancelar</button>
+          <button type="submit" class="btn primary" value="default">Criar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>
