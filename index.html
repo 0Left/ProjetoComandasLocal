@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
     <header class="app-header">
       <h1>Comandas</h1>
       <p class="subtitle">Rascunho local · dados salvos no navegador</p>
@@ -27,9 +29,13 @@
           <h2 id="detail-heading">Detalhe</h2>
         </div>
         <div id="detail-placeholder" class="placeholder">
-          Selecione uma comanda aberta para anotar itens ou fechar.
+          Selecione uma comanda em <strong>Abertas</strong> ou no <strong>Histórico</strong>.
         </div>
         <div id="detail-content" hidden>
+          <div id="detail-closed-banner" class="closed-banner" hidden>
+            <p class="closed-banner-title">Esta comanda está fechada — somente visualização.</p>
+            <p class="closed-banner-meta" id="detail-closed-meta"></p>
+          </div>
           <div class="detail-title-row">
             <h3 id="detail-name"></h3>
             <button type="button" class="btn danger" id="btn-close">Fechar comanda</button>

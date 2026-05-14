@@ -107,6 +107,28 @@ body {
   padding: 0.5rem 0;
 }
 
+.closed-banner {
+  margin: -0.25rem 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid rgba(245, 180, 80, 0.45);
+  background: rgba(245, 180, 80, 0.1);
+}
+
+.closed-banner-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #f5c96a;
+}
+
+.closed-banner-meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .detail-title-row {
   display: flex;
   flex-wrap: wrap;
@@ -119,6 +141,11 @@ body {
 .detail-title-row h3 {
   margin: 0;
   font-size: 1.1rem;
+}
+
+/* Comanda fechada: formulário de inclusão fora do layout e da tela */
+.detail-content--closed #form-add-item {
+  display: none !important;
 }
 
 .add-row {
@@ -201,6 +228,13 @@ body {
   min-width: 1.5rem;
   text-align: center;
   font-variant-numeric: tabular-nums;
+}
+
+.item-row-readonly .qty-readonly {
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .btn {
@@ -331,10 +365,7 @@ input:focus {
   margin-top: 0.2rem;
 }
 
-.history-card .history-static {
-  width: 100%;
-  text-align: left;
-  cursor: default;
+.history .btn.history-entry {
   border-style: dashed;
-  opacity: 0.95;
+  opacity: 0.98;
 }
