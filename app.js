@@ -1,14 +1,13 @@
 /**
  * Comandas — SPA com Supabase (Realtime + Auth).
  *
- * Configuração (sem alterar index.html), use uma das opções:
- * 1) Arquivo opcional na raiz do site: `supabase-env.mjs` exportando:
- *    export const SUPABASE_URL = "https://....supabase.co";
- *    (só a raiz do projeto — NÃO inclua /rest/v1/ no final)
- *    export const SUPABASE_ANON_KEY = "eyJ...";
- * 2) Antes de carregar este script, defina no console ou em outro script injetado:
- *    globalThis.__SUPABASE_URL__ = "...";
- *    globalThis.__SUPABASE_ANON_KEY__ = "...";
+ * Configuração (sem alterar index.html):
+ * 1) Arquivos locais gitignored em config/local/ (copie de config/examples/ via setup-local.bat):
+ *    supabase-env.mjs  → SUPABASE_URL, SUPABASE_ANON_KEY (Projeto A)
+ *    catalogo-env.mjs  → CATALOGO_SUPABASE_URL, CATALOGO_ANON_KEY (Projeto B)
+ * 2) Alternativa: globalThis.__SUPABASE_URL__ / __SUPABASE_ANON_KEY__ antes deste script.
+ *
+ * Catálogo (Projeto B): usado em cardapio.html e no seletor "Do catálogo" ao incluir itens.
  *
  * Visibilidade global (várias contas, mesma operação):
  * - O app não filtra por usuário: todas as comandas vêm do SELECT sem .eq(user_id).
@@ -143,33 +142,10 @@
     return div.innerHTML;
   }
 
-  /** @param {string} raw */
-  function normalizeSupabaseUrl(raw) {
-    let u = String(raw).trim();
-    if (!u) return u;
-    u = u.replace(/\/rest\/v1\/?$/i, "");
-    u = u.replace(/\/+$/, "");
-    return u;
-  }
-
   class EnvResolver {
     static async resolve() {
-      try {
-        const m = await import("./supabase-env.mjs");
-        const urlRaw = m.SUPABASE_URL ?? m.url;
-        const anonKey = m.SUPABASE_ANON_KEY ?? m.anonKey;
-        if (urlRaw && anonKey) {
-          return { url: normalizeSupabaseUrl(String(urlRaw)), anonKey: String(anonKey).trim() };
-        }
-      } catch {
-        /* arquivo opcional ausente ou inválido */
-      }
-      const urlRaw = globalThis.__SUPABASE_URL__;
-      const anonKey = globalThis.__SUPABASE_ANON_KEY__;
-      if (urlRaw && anonKey) {
-        return { url: normalizeSupabaseUrl(String(urlRaw)), anonKey: String(anonKey).trim() };
-      }
-      return null;
+      const { resolveSupabaseEnv } = await import("./config/env.mjs");
+      return resolveSupabaseEnv();
     }
   }
 
@@ -607,6 +583,7 @@
       .app-toast--error{border-color:rgba(232,93,93,.55);}
       .app-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-left:auto;}
       .app-toolbar .btn{font-size:.8rem;padding:.35rem .55rem;}
+      .app-toolbar a.btn{text-decoration:none;color:inherit;}
       .app-user-email{font-size:.75rem;color:var(--muted,#8b9bab);max-width:12rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     `;
     document.head.appendChild(s);
@@ -642,6 +619,8 @@
       this.syncPollTimer = null;
       /** @type {(() => void) | null} */
       this._syncOnVis = null;
+      /** @type {import("./catalogo-api.mjs").CatalogoItem[]} */
+      this.catalogItems = [];
 
       this.el = {
         listOpen: document.getElementById("list-open"),
@@ -656,6 +635,7 @@
         itemsList: document.getElementById("items-list"),
         emptyItems: document.getElementById("empty-items"),
         formAddItem: document.getElementById("form-add-item"),
+        itemCatalog: document.getElementById("item-catalog"),
         itemName: document.getElementById("item-name"),
         itemValor: document.getElementById("item-valor"),
         itemQty: document.getElementById("item-qty"),
@@ -672,6 +652,7 @@
       this.toolbar = document.createElement("div");
       this.toolbar.className = "app-toolbar";
       this.toolbar.innerHTML = `
+        <a class="btn" href="cardapio.html">Cardápio</a>
         <span class="app-user-email" id="app-user-email" hidden></span>
         <button type="button" class="btn" id="app-btn-signout" hidden>Sair</button>`;
       const header = document.querySelector(".app-header");
@@ -718,20 +699,80 @@
         e.preventDefault();
         void this.onAddItem();
       });
+      this.el.itemCatalog?.addEventListener("change", () => this.onCatalogPick());
       this.el.btnClose.addEventListener("click", () => void this.onCloseComanda());
+    }
+
+    /** @param {import("./catalogo-api.mjs").CatalogoItem[]} items @param {string} [emptyLabel] */
+    populateCatalogSelect(items, emptyLabel) {
+      const sel = this.el.itemCatalog;
+      if (!sel) return;
+      sel.innerHTML = "";
+      const manual = document.createElement("option");
+      manual.value = "";
+      manual.textContent = emptyLabel || "Digitar manualmente";
+      sel.appendChild(manual);
+      for (const item of items) {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        const cat = item.categoria ? `${item.categoria} · ` : "";
+        opt.textContent = `${cat}${item.nome} — ${formatMoney(item.preco)}`;
+        sel.appendChild(opt);
+      }
+    }
+
+    onCatalogPick() {
+      const sel = this.el.itemCatalog;
+      if (!sel) return;
+      const id = sel.value;
+      if (!id) {
+        this.el.itemName.value = "";
+        this.el.itemValor.value = "";
+        this.el.itemName.focus();
+        return;
+      }
+      const item = this.catalogItems.find((i) => i.id === id);
+      if (!item) return;
+      this.el.itemName.value = item.nome;
+      this.el.itemValor.value = String(item.preco);
+      this.el.itemQty.focus();
+    }
+
+    resetCatalogPicker() {
+      const sel = this.el.itemCatalog;
+      if (sel) sel.value = "";
+    }
+
+    async loadCatalog() {
+      try {
+        const { resolveCatalogoEnv, fetchCatalogoItens } = await import("./catalogo-api.mjs");
+        const env = await resolveCatalogoEnv();
+        if (!env) {
+          this.catalogItems = [];
+          this.populateCatalogSelect([], "Catálogo não configurado");
+          return;
+        }
+        this.catalogItems = await fetchCatalogoItens(env);
+        this.populateCatalogSelect(this.catalogItems);
+      } catch (e) {
+        this.catalogItems = [];
+        this.populateCatalogSelect([], "Catálogo indisponível");
+        this.toasts.show(errMessage(e), "error");
+      }
     }
 
     async bootstrap() {
       const env = await EnvResolver.resolve();
       if (!env) {
         this.toasts.show(
-          "Defina Supabase: crie supabase-env.mjs ou globalThis.__SUPABASE_URL__ / __SUPABASE_ANON_KEY__.",
+          "Configure config/local/supabase-env.mjs (rode setup-local.bat e preencha as chaves).",
           "error",
         );
         return;
       }
 
       this.loading.set(true, "Conectando…");
+      void this.loadCatalog();
       try {
         const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.49.1");
         this.supabase = createClient(env.url, env.anonKey, {
@@ -1040,6 +1081,7 @@
         this.el.itemName.value = "";
         this.el.itemValor.value = "";
         this.el.itemQty.value = "1";
+        this.resetCatalogPicker();
         this.el.itemName.focus();
         this.render();
       } catch (e) {

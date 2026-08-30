@@ -1,0 +1,3 @@
+/** Copie para config/local/catalogo-env.mjs — Projeto B (catálogo). */
+export const CATALOGO_SUPABASE_URL = "https://SEU-PROJETO-CATALOGO.supabase.co";
+export const CATALOGO_ANON_KEY = "eyJ...";

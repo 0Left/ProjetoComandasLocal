@@ -1,2 +1,14 @@
-# Credenciais locais do Supabase (não versionar)
+# Credenciais locais (nunca versionar)
+config/local/*
+!config/local/.gitkeep
+
+# Legado na raiz (se ainda existir localmente)
 supabase-env.mjs
+catalogo-env.mjs
+
+# SO / editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cardápio — catálogo público</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header cardapio-header">
+      <div>
+        <h1>Cardápio</h1>
+        <p class="subtitle">Catálogo público · Projeto B (Supabase)</p>
+      </div>
+      <nav class="app-nav">
+        <a class="btn" href="index.html">← Comandas</a>
+      </nav>
+    </header>
+
+    <main class="cardapio-layout">
+      <p class="cardapio-status" id="cardapio-status" role="status">Carregando itens…</p>
+      <div id="cardapio-content" hidden></div>
+    </main>
+
+    <script type="module" src="cardapio.js"></script>
+  </body>
+</html>

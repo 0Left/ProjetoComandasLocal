@@ -3,11 +3,19 @@ chcp 65001 >nul
 title Comandas — servidor local
 cd /d "%~dp0"
 
+call setup-local.bat
+if errorlevel 1 (
+  echo.
+  pause
+  exit /b 1
+)
+
 set PORT=8080
 echo.
-echo  Comandas (beta) — servidor estático
+echo  Comandas — servidor estático
 echo  Pasta: %cd%
-echo  Abra no navegador: http://localhost:%PORT%/
+echo  Comandas:  http://localhost:%PORT%/
+echo  Cardápio:  http://localhost:%PORT%/cardapio.html
 echo  (Ctrl+C para encerrar)
 echo.
 
